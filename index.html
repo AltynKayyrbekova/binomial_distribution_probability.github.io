@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="style12.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
 </head>
 
 <body>
@@ -44,8 +45,10 @@
 
             <div id="output">
                 <h2>Численные характеристики:</h2>
-                <p id="output-mean">Математическое ожидание (Mean ): \(M(X)\) = \(n\) \(*\) \(p\)  = <span class="math"></span></p>
-                <p id="output-variance">Дисперсия (Variance): \(D(X)\) = \(n\) \(*\) \(p\) \(*\) (1 - \(p\)) = <span class="math"></span></p>
+                <p></p>
+                <p id="output-mean"> Математическое ожидание (Mean ): \(M(X)\) = <span class="math"></span></p>
+                <p></p>
+                <p id="output-variance"> Дисперсия (Variance): \(D(X)\) = <span class="math"></span></p>
             </div>
 
             <div role="button" onclick="toggleExplanation()" style="color: rgb(139, 139, 255)">Объяснение</div>
@@ -63,6 +66,10 @@
                 
                 <p>где факториал вычисляется по формуле:</p>
                 \[ k! = 1 \cdot 2 \cdot 3 \cdot ... \cdot k. \]
+
+                <p>Математическое ожидание и дисперсия распределения вычисляются следующим образом:</p>
+                \[ M(X) = n \cdot p \]
+                \[ D(X) = n \cdot p \cdot (1 - p) \]
             </div>
         </section>
 
@@ -85,6 +92,7 @@
 
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    
     <script>
         function toggleExampleText() {
             const exampleText = document.getElementById('example-text');
@@ -171,10 +179,10 @@
                 window.myBinomialChart.destroy();
             }
 
-            const chartType = (n > 100) ? 'line' : 'line';
+            const chartType = 'line';
 
             const maxProbability = Math.max(...data.map(entry => entry.y));
-            const yAxisMax = Math.min(maxProbability + 0.01, 1); // Устанавливаем максимальное значение оси ординат
+            const yAxisMax = Math.min(maxProbability + 0.01, 1);
 
             const decimalPlaces = getDecimalPlaces();
             const stepSize = 1 / Math.pow(10, decimalPlaces);
@@ -185,10 +193,11 @@
                     labels: Array.from({ length: data.length }, (_, i) => i.toString()),
                     datasets: [{
                         label: 'Probability',
-                        data: data,
-                        backgroundColor: (chartType === 'line') ? 'rgba(52, 152, 219, 0.7)' : 'transparent',
+                        data: data.map(entry => entry.y),
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
                         borderColor: 'rgba(52, 152, 219, 1)',
-                        borderWidth: 1
+                        borderWidth: 1,
+                        fill: false
                     }]
                 },
                 options: {
@@ -206,21 +215,30 @@
                                 beginAtZero: true
                             }
                         }
+                    },
+                    animation: {
+                        onProgress: (animation) => {
+                            const ctx = animation.chart.ctx;
+                            const xAxis = animation.chart.scales['x'];
+                            const yAxis = animation.chart.scales['y'];
+
+                            data.forEach(entry => {
+                                const progress = animation.currentStep / animation.numSteps;
+                                const y = yAxis.getPixelForValue(entry.y * progress);
+                                const x = xAxis.getPixelForValue(entry.x);
+
+                                ctx.beginPath();
+                                ctx.strokeStyle = 'rgba(52, 152, 219, 0.7)';
+                                ctx.lineWidth = 1;
+                                ctx.moveTo(x, yAxis.bottom);
+                                ctx.lineTo(x, y);
+                                ctx.stroke();
+                            });
+                        }
                     }
                 }
             });
         }
-
-        function getDecimalPlaces() {
-            const decimalPlacesInput = document.getElementById('decimal-places');
-            return parseInt(decimalPlacesInput.value) || 4; // По умолчанию 4 знака после запятой
-        }
-
-        function updateDecimalPlaces() {
-            const data = calculateBinomialDistribution(parseInt(document.getElementById('n').value), parseFloat(document.getElementById('p').value));
-            updateChart(data, parseInt(document.getElementById('n').value));
-        }
-
 
 
         function updateOutput(n, p) {
@@ -256,7 +274,7 @@
 
         function getDecimalPlaces() {
             const decimalPlacesInput = document.getElementById('decimal-places');
-            return parseInt(decimalPlacesInput.value) || 4; // Default to 2 decimal places
+            return parseInt(decimalPlacesInput.value) || 4; // 
         }
 
         function updateDecimalPlaces() {
