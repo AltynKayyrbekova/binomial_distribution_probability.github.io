@@ -96,7 +96,9 @@ input, select {
     width: 15%;
     box-sizing: border-box;
 }
-
+#binomial-form input {
+    width: 100px; /* Set a fixed width (adjust as needed) */
+}
 button {
     border-radius: 40px;
     border: solid 6px rgb(84, 182, 84);
