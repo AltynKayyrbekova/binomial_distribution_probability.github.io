@@ -15,7 +15,7 @@
         <h1>Биномиальное распределение</h1>
     </header>
     <div class="container">
-        
+
         <section id="simulation-section">
             <div role="button" onclick="toggleExampleText()" style="color: rgb(139, 139, 255);">Пример задачи</div>
             <div id="example-text" style="display: none;">
@@ -43,25 +43,25 @@
             <canvas id="binomial-chart"></canvas>
 
             <div id="output">
-                <h2>Численные значения:</h2>
+                <h2>Численные характеристики:</h2>
                 <p id="output-mean">Математическое ожидание (Mean ): \(M(X)\) = \(n\) \(*\) \(p\)  = <span class="math"></span></p>
                 <p id="output-variance">Дисперсия (Variance): \(D(X)\) = \(n\) \(*\) \(p\) \(*\) (1 - \(p\)) = <span class="math"></span></p>
             </div>
 
             <div role="button" onclick="toggleExplanation()" style="color: rgb(139, 139, 255)">Объяснение</div>
             <div id="explanation" style="display: none;">
-                <p>Вероятность события где случайная величина \(X\) примет значение \(k\) вычисляется по формуле:</p>
-                \[ P(X = k) = \binom{n}{k} \cdot p^k \cdot (1 - p)^{n - k} \]
-                <p>Где:</p>
+                <p>Вероятность события, где случайная величина \(X\) примет значение \(k\) вычисляется по формуле:</p>
+                \[ P(X = k) = \binom{n}{k} \cdot p^k \cdot (1 - p)^{n - k},\]
+                <p>где:</p>
                 <ul>
                     <li> \( \binom{n}{k} \) - число сочетаний \(n\) по \(k\),</li>
                     <li> \( p \) - вероятность успеха в каждом опыте,</li>
                     <li> \( (1 - p) \) - вероятность неудачи в каждом опыте.</li>
                 </ul>
                 <p>Число сочетаний \( \binom{n}{k} \) вычисляется по формуле:</p>
-                \[ \binom{n}{k} = \frac{n!}{k! \cdot (n - k)!} \]
+                \[ \binom{n}{k} = \frac{n!}{k! \cdot (n - k)!} ,\]
                 
-                <p>Где факториал вычисляется по формуле:</p>
+                <p>где факториал вычисляется по формуле:</p>
                 \[ k! = 1 \cdot 2 \cdot 3 \cdot ... \cdot k. \]
             </div>
         </section>
@@ -173,6 +173,12 @@
 
             const chartType = (n > 100) ? 'line' : 'line';
 
+            const maxProbability = Math.max(...data.map(entry => entry.y));
+            const yAxisMax = Math.min(maxProbability + 0.001, 1); // Устанавливаем максимальное значение оси ординат
+
+            const decimalPlaces = getDecimalPlaces();
+            const stepSize = 1 / Math.pow(10, decimalPlaces);
+
             window.myBinomialChart = new Chart(ctx, {
                 type: chartType,
                 data: {
@@ -194,12 +200,28 @@
                         },
                         y: {
                             min: 0,
-                            max: 1
+                            max: yAxisMax,
+                            ticks: {
+                                stepSize: stepSize,
+                                beginAtZero: true
+                            }
                         }
                     }
                 }
             });
         }
+
+        function getDecimalPlaces() {
+            const decimalPlacesInput = document.getElementById('decimal-places');
+            return parseInt(decimalPlacesInput.value) || 4; // По умолчанию 4 знака после запятой
+        }
+
+        function updateDecimalPlaces() {
+            const data = calculateBinomialDistribution(parseInt(document.getElementById('n').value), parseFloat(document.getElementById('p').value));
+            updateChart(data, parseInt(document.getElementById('n').value));
+        }
+
+
 
         function updateOutput(n, p) {
             const outputContainer = document.getElementById('output');
